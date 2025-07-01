@@ -4,6 +4,13 @@ terraform {
       source = "temporalio/temporalcloud"
     }
   }
+  backend "s3" {
+    # Bucket Name
+    bucket = "terraform-state-bucket"
+    # The terraform state is written to the key
+    key = "team-1/terraform.tfstate"
+    region = "us-east-1"
+  }
 }
 
 provider "temporalcloud" {

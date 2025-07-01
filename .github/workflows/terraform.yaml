@@ -1,0 +1,77 @@
+name: terraform.yaml
+on:
+  push:
+    branches:
+      - main
+
+env:
+  # Expose environment variables that could be used in script execution
+  TEMPORAL_API_KEY: ${{ secrets.TEMPORAL_API_KEY }}
+  # S3 bucket for the Terraform state
+  BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
+
+jobs:
+  terraform:
+    name: "Terraform Infrastructure Change Management"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./terraform
+    steps:
+      - name: Checkout the repository to the runner
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 'latest'
+
+      # Version Iterate all directories and run terraform commands
+      - name: Find directories and run Terraform init
+        run: |
+          find ./terraform -mindepth 1 -maxdepth 2 -type d -exec sh -c '
+            echo "Processing directory: {}"
+            cd "{}"
+            terraform init -backend-config="bucket=$BUCKET_TF_STATE"
+          ' \;
+
+      - name: Find directories and run Terraform format
+        run: |
+          find ./terraform -mindepth 1 -maxdepth 2 -type d -exec sh -c '
+            echo "Processing directory: {}"
+            cd "{}"
+            terraform fmt -check
+          ' \;
+
+      - name: Find directories and run Terraform validate
+        run: |
+          find ./terraform -mindepth 1 -maxdepth 2 -type d -exec sh -c '
+            echo "Processing directory: {}"
+            cd "{}"
+            terraform validate
+          ' \;
+
+
+      - name: Find directories and run Terraform plan
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          find ./terraform -mindepth 1 -maxdepth 2 -type d -exec sh -c '
+            echo "Processing directory: {}"
+            cd "{}"
+            terraform init
+            terraform plan
+          ' \;
+
+      - name: Find directories and run Terraform apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          find ./terraform -mindepth 1 -maxdepth 2 -type d -exec sh -c '
+            echo "Processing directory: {}"
+            cd "{}"
+            terraform init
+            terraform apply -auto-approve -input=false
+          ' \;
+
+      
+

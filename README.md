@@ -14,3 +14,8 @@ Terraform supports storing state in HCP Terraform, HashiCorp Consul, Amazon S3, 
 Remote state is implemented by a backend or by HCP Terraform, both of which you can configure in your configuration's root module.
 #### Locking
 For fully-featured remote backends, Terraform can also use state locking to prevent concurrent runs of Terraform against the same state.
+
+
+Researching
+https://spacelift.io/blog/github-actions-terraform
+https://developer.hashicorp.com/terraform/tutorials/automation/github-actions

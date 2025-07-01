@@ -1,0 +1,47 @@
+name: workflowV2.yml
+on:
+  push:
+    branches:
+      - main
+
+env:
+  # Expose environment variables that could be used in script execution
+  TEMPORAL_API_KEY: ${{ secrets.TEMPORAL_API_KEY }}
+  # S3 bucket for the Terraform state
+  BUCKET_TF_STATE: ${{ secrets.BUCKET_TF_STATE }}
+
+jobs:
+  find-changed-dirs:
+    runs-on: ubuntu-latest
+    outputs:
+      dirs: ${{ steps.changed-files.outputs.dirs }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: '0'
+
+      - name: Get changed directories
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          dir_names: true
+
+  terraform-plan-changed:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir: ${{fromJson(needs.find-changed-dirs.outputs.dirs)}}
+    needs: find-changed-dirs
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 'latest'
+      ## Example skipped running (format, validate, plan)
+      - name: Run Terraform apply in ${{ matrix.dir }}
+        run: |
+          cd ${{ matrix.dir }}
+          terraform init -backend-config="bucket=$BUCKET_TF_STATE"
+          terraform apply -auto-approve -input=false
