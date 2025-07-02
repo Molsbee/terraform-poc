@@ -10,6 +10,7 @@ terraform {
     # The terraform state is written to the key
     key = "team-1/terraform.tfstate"
     region = "us-east-1"
+    encrypt = true
   }
 }
 

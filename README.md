@@ -18,4 +18,5 @@ For fully-featured remote backends, Terraform can also use state locking to prev
 
 Researching
 https://spacelift.io/blog/github-actions-terraform
+https://spacelift.io/blog/terraform-s3-backend
 https://developer.hashicorp.com/terraform/tutorials/automation/github-actions
